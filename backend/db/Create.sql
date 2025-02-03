@@ -1,7 +1,7 @@
 
-CREATE TABLE IF NOT EXISTS employees (
-                                         id SERIAL PRIMARY KEY,
-                                         name VARCHAR(100),
-                                         position VARCHAR(100),
-                                         hire_date DATE
+CREATE TABLE IF NOT EXISTS ips (
+    id SERIAL PRIMARY KEY,
+    ip VARCHAR(100),
+    ping_time int,
+    last_ok DATE
 );

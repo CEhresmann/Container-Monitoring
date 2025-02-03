@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 5434
 database:
   host: postgres
   user: vk
@@ -8,3 +8,4 @@ database:
 queue:
   type: kafka
   broker: kafka:9092
+  topic: pingTopic
