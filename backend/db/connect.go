@@ -34,7 +34,6 @@ func InitDB() {
 			err = DB.Ping()
 			if err == nil {
 				log.Println("Подключение к базе данных успешно")
-				CreateAll()
 				CreateTable()
 				return
 			}
@@ -50,10 +49,6 @@ func CreateTable() {
 	executeSQLFile("db/Create.sql", "Ошибка создания таблицы")
 }
 
-func CreateAll() {
-	executeSQLFile("db/init.sql", "Ошибка создания таблицы")
-}
-
 func executeSQLFile(filepath string, errorMessage string) {
 	sqlScript, err := os.ReadFile(filepath)
 	if err != nil {
@@ -62,7 +57,7 @@ func executeSQLFile(filepath string, errorMessage string) {
 
 	_, err = DB.Exec(string(sqlScript))
 	if err != nil {
-		log.Fatalf("%s: %v", errorMessage, err)
+		log.Printf("%s: %v", errorMessage, err)
 	}
 
 	log.Printf("SQL-скрипт %s успешно выполнен.", filepath)

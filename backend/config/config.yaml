@@ -1,10 +1,10 @@
 server:
   port: 5434
 database:
+  dbname: monitoring
   host: db
   user: vk
   password: 12345
-  dbname: monitoring
 queue:
   type: kafka
   broker: kafka:9092
