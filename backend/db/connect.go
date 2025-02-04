@@ -3,48 +3,67 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"github.com/CEhresmann/Container-Monitoring/config"
-	_ "github.com/lib/pq"
 	"log"
 	"os"
+	"time"
+
+	"github.com/CEhresmann/Container-Monitoring/config"
+	_ "github.com/lib/pq"
 )
 
 var DB *sql.DB
 
-func InitDB() {
-	dsn := "host=" + config.Cfg.Database.Host + "user=" + config.Cfg.Database.User +
-		"password=" + config.Cfg.Database.Password + "dbname=" + config.Cfg.Database.DBName +
-		"sslmode=disable"
-	var err error
-	DB, err = sql.Open("postgres", dsn)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer DB.Close()
-}
+const (
+	maxRetries    = 6
+	retryInterval = 1 * time.Second
+)
 
-func CreateUser() {
-	sqlScript, err := os.ReadFile("db/User.sql")
-	if err != nil {
-		log.Println("failed to read SQL script: ", err)
+func InitDB() {
+	dsn := fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s sslmode=disable",
+		config.Cfg.Database.Host,
+		config.Cfg.Database.User,
+		config.Cfg.Database.Password,
+		config.Cfg.Database.DBName,
+	)
+
+	var err error
+	for i := 0; i < maxRetries; i++ {
+		DB, err = sql.Open("postgres", dsn)
+		if err == nil {
+			err = DB.Ping()
+			if err == nil {
+				log.Println("Подключение к базе данных успешно")
+				CreateAll()
+				CreateTable()
+				return
+			}
+		}
+		log.Printf("Ошибка подключения к БД (попытка %d/%d): %v", i+1, maxRetries, err)
+		time.Sleep(retryInterval)
 	}
-	createTableSQL := sqlScript
-	_, err = DB.Exec(string(createTableSQL))
-	if err != nil {
-		log.Fatalf("Failed to create user: %v", err)
-	}
-	fmt.Println("User created successfully.")
+
+	log.Fatal("Не удалось подключиться к базе данных после нескольких попыток:", err)
 }
 
 func CreateTable() {
-	sqlScript, err := os.ReadFile("db/Create.sql")
+	executeSQLFile("db/Create.sql", "Ошибка создания таблицы")
+}
+
+func CreateAll() {
+	executeSQLFile("db/init.sql", "Ошибка создания таблицы")
+}
+
+func executeSQLFile(filepath string, errorMessage string) {
+	sqlScript, err := os.ReadFile(filepath)
 	if err != nil {
-		log.Println("failed to read SQL script: ", err)
+		log.Fatalf("Ошибка чтения SQL-файла %s: %v", filepath, err)
 	}
-	createTableSQL := sqlScript
-	_, err = DB.Exec(string(createTableSQL))
+
+	_, err = DB.Exec(string(sqlScript))
 	if err != nil {
-		log.Fatalf("Failed to create table: %v", err)
+		log.Fatalf("%s: %v", errorMessage, err)
 	}
-	fmt.Println("Table created successfully.")
+
+	log.Printf("SQL-скрипт %s успешно выполнен.", filepath)
 }

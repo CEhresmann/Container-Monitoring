@@ -1,36 +1,61 @@
 package main
 
 import (
+	"errors"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
+
 	"github.com/CEhresmann/Container-Monitoring/config"
 	"github.com/CEhresmann/Container-Monitoring/db"
 	"github.com/CEhresmann/Container-Monitoring/handlers"
 	"github.com/CEhresmann/Container-Monitoring/queue"
 	"github.com/gorilla/mux"
-	"log"
-	"net/http"
-	"time"
 )
 
 func main() {
 	config.LoadConfig()
 
 	db.InitDB()
-	db.CreateUser()
-	db.CreateTable()
 
-	go queue.ConsumeMessages()
+	var wg sync.WaitGroup
+	stopChan := make(chan os.Signal, 1)
+	signal.Notify(stopChan, os.Interrupt, syscall.SIGTERM)
 
+	wg.Add(1)
 	go func() {
-		for {
-			queue.ProduceMessage()
-			time.Sleep(15 * time.Second)
-		}
+		defer wg.Done()
+		queue.ConsumeMessages()
 	}()
 
 	router := mux.NewRouter()
 	router.HandleFunc("/api/ip", handlers.GetIPStatuses).Methods("GET")
 	router.HandleFunc("/api/ip", handlers.AddIPStatus).Methods("POST")
 
-	log.Println("Server running on port", config.Cfg.Server.Port)
-	log.Fatal(http.ListenAndServe(":"+config.Cfg.Server.Port, router))
+	server := &http.Server{
+		Addr:    ":" + config.Cfg.Server.Port,
+		Handler: router,
+	}
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		log.Println("Сервер запущен на:", config.Cfg.Server.Port)
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("Ошибка запуска сервера: %v", err)
+		}
+	}()
+
+	<-stopChan
+	log.Println("Получен сигнал остановки, завершаем работу...")
+
+	if err := server.Close(); err != nil {
+		log.Printf("Ошибка при закрытии сервера: %v", err)
+	}
+
+	wg.Wait()
+	log.Println("Все горутины завершены, выход.")
 }

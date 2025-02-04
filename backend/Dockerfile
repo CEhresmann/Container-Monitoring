@@ -8,12 +8,21 @@ RUN go mod tidy
 
 COPY . .
 
-RUN go build -o main .
+RUN go build -o backend .
 
 FROM alpine:latest
 
+RUN apk add --no-cache libc6-compat
+
 WORKDIR /root/
 
-COPY --from=builder /BackendApp/main .
+COPY --from=builder /BackendApp/backend .
+COPY --from=builder /BackendApp/config /root/config
+COPY --from=builder /BackendApp/db /root/db
+COPY --from=builder /BackendApp/handlers /root/handlers
+COPY --from=builder /BackendApp/queue /root/queue
 
-CMD ["./main"]
+
+
+
+CMD ["./backend"]

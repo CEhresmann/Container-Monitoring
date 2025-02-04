@@ -1,7 +1,7 @@
 server:
   port: 5434
 database:
-  host: postgres
+  host: db
   user: vk
   password: 12345
   dbname: monitoring

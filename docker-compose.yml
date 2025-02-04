@@ -8,36 +8,54 @@ services:
       POSTGRES_PASSWORD: 12345
     ports:
       - "5434:5432"
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "vk" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   kafka:
-      image: wurstmeister/kafka
-      restart: always
-      ports:
-        - "9092:9092"
-      environment:
-        KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
-        KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:9092"
-        KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
-      depends_on:
-        - zookeeper
+    image: wurstmeister/kafka
+    restart: always
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:9092"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
+    depends_on:
+      - zookeeper
 
   zookeeper:
-      image: wurstmeister/zookeeper
-      restart: always
-      ports:
-        - "2181:2181"
+    image: wurstmeister/zookeeper
+    restart: always
+    ports:
+      - "2181:2181"
 
-  my_service:
+  backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
     depends_on:
-      - db
-      - kafka
+      db:
+          condition: service_healthy
     environment:
       DATABASE_HOST: db
       DATABASE_USER: vk
       DATABASE_PASSWORD: 12345
       QUEUE_BROKER: kafka:9092
+
+  pinger:
+    build:
+      context: ./Pinger
+      dockerfile: Dockerfile
+    depends_on:
+      - backend
+    environment:
+      QUEUE_BROKER: kafka:9092
+      PING_TOPIC: pingTopic
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
