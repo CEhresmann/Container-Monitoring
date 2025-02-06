@@ -3,7 +3,7 @@ services:
     image: postgres:latest
     restart: always
     environment:
-      POSTGRES_DB: monitoring
+      POSTGRES_DB: vk
       POSTGRES_USER: vk
       POSTGRES_PASSWORD: 12345
     ports:
@@ -13,30 +13,51 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-
-  kafka:
-    image: wurstmeister/kafka
-    restart: always
-    ports:
-      - "9092:9092"
-    environment:
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
-      KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:9092"
-      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
-    volumes:
-      - ./init-kafka.sh:/init-kafka.sh
-    entrypoint: [ "/bin/sh", "-c", "chmod +x /init_kafka.sh && /init_kafka.sh" ]
-    depends_on:
-      - zookeeper
-
-
+    networks:
+      - monitoring_network
 
   zookeeper:
-    image: wurstmeister/zookeeper
+    image: confluentinc/cp-zookeeper:latest
     restart: always
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ALLOW_ANONYMOUS_LOGIN: yes
     ports:
       - "2181:2181"
+    networks:
+      - monitoring_network
+
+  kafka:
+    container_name: kafka
+    image: confluentinc/cp-kafka:latest
+    restart: always
+    ports:
+      - "29092:29092"
+      - "9092:9092"
+      - "9201:9201"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_NAME_PLAINTEXT_HOST: PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL: PLAINTEXT
+      KAFKA_LISTENER_NAMES: PLAINTEXT,PLAINTEXT_HOST
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_LISTENER_DEFAULT_SECURITY_PROTOCOL: PLAINTEXT
+      KAFKA_LISTENER_NAME_PLAINTEXT: PLAINTEXT
+      KAFKA_JMX_PORT: 9201
+      KAFKA_OPTS: "-javaagent:/jmx_exporter/jmx_prometheus_javaagent.jar=9101:/jmx_exporter/kafka.yml"
+    volumes:
+      - ./jmx_exporter:/jmx_exporter
+    depends_on:
+      - zookeeper
+    healthcheck:
+      test: [ "CMD", "kafka_topics.sh", "--bootstrap-server", "kafka:9092", "--list" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - monitoring_network
 
   backend:
     build:
@@ -46,24 +67,74 @@ services:
       - "8080:8080"
     depends_on:
       db:
-          condition: service_healthy
-      kafka:
-          condition: service_started
+        condition: service_healthy
+#      kafka:
+#        condition: service_healthy
     environment:
+      DATABASE_NAME: monitoring
       DATABASE_HOST: db
       DATABASE_USER: vk
       DATABASE_PASSWORD: 12345
       QUEUE_BROKER: kafka:9092
+    networks:
+      - monitoring_network
 
   pinger:
     build:
       context: ./Pinger
       dockerfile: Dockerfile
     depends_on:
-      - backend
+ #     kafka:
+ #       condition: service_healthy
+    - backend
     environment:
       QUEUE_BROKER: kafka:9092
       PING_TOPIC: pingTopic
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - monitoring_network
 
+  kafka-exporter:
+    image: danielqsj/kafka-exporter
+    restart: always
+    command:
+      - "--kafka.server=kafka:9092"
+    ports:
+      - "9308:9308"
+ #   depends_on:
+ #     kafka:
+ #       condition: service_healthy
+    networks:
+      - monitoring_network
+
+  postgres-exporter:
+    image: wrouesnel/postgres_exporter
+    restart: always
+    environment:
+      DATA_SOURCE_NAME: "postgresql://vk:12345@db:5432/vk?sslmode=disable"
+    ports:
+      - "9187:9187"
+    depends_on:
+      - db
+    networks:
+      - monitoring_network
+
+
+  prometheus:
+    image: prom/prometheus
+    restart: always
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    ports:
+      - "9090:9090"
+    depends_on:
+      - kafka-exporter
+    networks:
+      - monitoring_network
+
+networks:
+  monitoring_network:
+    driver: bridge

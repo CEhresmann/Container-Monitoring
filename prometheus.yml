@@ -1,0 +1,34 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: 'kafka'
+    static_configs:
+      - targets: ['kafka-exporter:9308']
+    metrics_path: /metrics
+
+  - job_name: 'backend'
+    static_configs:
+      - targets: ['backend:8080']
+    metrics_path: /metrics
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    metrics_path: /metrics
+
+  - job_name: "kafka-jmx"
+    static_configs:
+      - targets: ["kafka:9101"]
+    metrics_path: /metrics
+
+  - job_name: "zookeeper"
+    static_configs:
+      - targets: ["zookeeper:2181"]
+    metrics_path: /metrics
+
+  - job_name: 'PostgreSQL'
+    static_configs:
+      - targets: [ 'localhost:9187' ]
+    metrics_path: /metrics

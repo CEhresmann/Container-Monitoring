@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	brokerAddress = config.Cfg.Server.Port
+	brokerAddress = config.Cfg.Queue.Broker
 	topic         = "ip_status_topic"
 )
 

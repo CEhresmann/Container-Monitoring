@@ -1,0 +1,44 @@
+lowercaseOutputName: true
+rules:
+
+  - pattern: "kafka.server<type=(.*), name=(.*)>(Count|Value|Mean|Max)?"
+    name: "kafka_$1_$2"
+    labels:
+      type: "$1"
+      name: "$2"
+    value: "$3"
+
+  - pattern: "kafka.producer<type=(.*), name=(.*)>(Count|Value|Mean|Max)?"
+    name: "kafka_producer_$1_$2"
+    labels:
+      type: "$1"
+      name: "$2"
+    value: "$3"
+
+  - pattern: "kafka.consumer<type=(.*), name=(.*)>(Count|Value|Mean|Max)?"
+    name: "kafka_consumer_$1_$2"
+    labels:
+      type: "$1"
+      name: "$2"
+    value: "$3"
+
+  - pattern: "kafka.zookeeper<type=(.*), name=(.*)>(Count|Value|Mean|Max)?"
+    name: "kafka_zookeeper_$1_$2"
+    labels:
+      type: "$1"
+      name: "$2"
+    value: "$3"
+
+  - pattern: "kafka.log<type=(.*), name=(.*)>(Count|Value|Mean|Max)?"
+    name: "kafka_log_$1_$2"
+    labels:
+      type: "$1"
+      name: "$2"
+    value: "$3"
+
+  - pattern: "kafka.network<type=(.*), name=(.*)>(Count|Value|Mean|Max)?"
+    name: "kafka_network_$1_$2"
+    labels:
+      type: "$1"
+      name: "$2"
+    value: "$3"

@@ -13,8 +13,29 @@ import (
 	"github.com/CEhresmann/Container-Monitoring/db"
 	"github.com/CEhresmann/Container-Monitoring/handlers"
 	"github.com/CEhresmann/Container-Monitoring/queue"
+
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
+
+var (
+	requests = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "http_requests_total",
+			Help: "Total number of HTTP requests",
+		},
+		[]string{"method", "status"},
+	)
+)
+
+func init() {
+	prometheus.MustRegister(requests)
+}
+
+func recordMetrics() {
+	http.Handle("/metrics", promhttp.Handler()) // Endpoint для сбора метрик
+}
 
 func main() {
 	config.LoadConfig()
@@ -44,6 +65,8 @@ func main() {
 	go func() {
 		defer wg.Done()
 		log.Println("Сервер запущен на:", config.Cfg.Server.Port)
+		recordMetrics()
+		log.Println("собираем метрики")
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("Ошибка запуска сервера: %v", err)
 		}
