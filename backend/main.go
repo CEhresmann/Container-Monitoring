@@ -33,10 +33,6 @@ func init() {
 	prometheus.MustRegister(requests)
 }
 
-func recordMetrics() {
-	http.Handle("/metrics", promhttp.Handler()) // Endpoint для сбора метрик
-}
-
 func main() {
 	config.LoadConfig()
 
@@ -56,6 +52,8 @@ func main() {
 	router.HandleFunc("/api/ip", handlers.GetIPStatuses).Methods("GET")
 	router.HandleFunc("/api/ip", handlers.AddIPStatus).Methods("POST")
 
+	router.Handle("/metrics", promhttp.Handler())
+
 	server := &http.Server{
 		Addr:    ":" + config.Cfg.Server.Port,
 		Handler: router,
@@ -65,8 +63,6 @@ func main() {
 	go func() {
 		defer wg.Done()
 		log.Println("Сервер запущен на:", config.Cfg.Server.Port)
-		recordMetrics()
-		log.Println("собираем метрики")
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("Ошибка запуска сервера: %v", err)
 		}

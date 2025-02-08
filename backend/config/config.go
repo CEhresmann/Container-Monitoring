@@ -1,10 +1,9 @@
 package config
 
 import (
-	"log"
-	"strings"
-
 	"github.com/spf13/viper"
+	"log"
+	"os"
 )
 
 type Config struct {
@@ -32,15 +31,22 @@ func LoadConfig() {
 	viper.AddConfigPath("config")
 	viper.AddConfigPath(".")
 
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
-		log.Fatalf("Ошибка чтения конфигурации: %v", err)
+		log.Printf("Ошибка чтения конфигурации: %v (используем только ENV)", err)
 	}
 
 	if err := viper.Unmarshal(&Cfg); err != nil {
 		log.Fatalf("Ошибка разбора конфигурации: %v", err)
+	}
+
+	if broker := os.Getenv("QUEUE_BROKER"); broker != "" {
+		Cfg.Queue.Broker = broker
+	}
+
+	if topic := os.Getenv("PING_TOPIC"); topic != "" {
+		Cfg.Queue.Topic = topic
 	}
 
 	log.Println("Конфигурация загружена успешно")

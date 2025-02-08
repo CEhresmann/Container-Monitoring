@@ -6,15 +6,19 @@ import (
 	"fmt"
 	"github.com/CEhresmann/Container-Monitoring/config"
 	"log"
+	"os"
 
 	"github.com/CEhresmann/Container-Monitoring/db"
 	"github.com/segmentio/kafka-go"
 )
 
+/*
 var (
-	brokerAddress = config.Cfg.Queue.Broker
-)
 
+	brokerAddress = config.Cfg.Queue.Broker
+
+)
+*/
 type IPStatus struct {
 	IP       string `json:"ip"`
 	PingTime int    `json:"ping_time"`
@@ -22,15 +26,25 @@ type IPStatus struct {
 }
 
 func ConsumeMessages() {
+	broker := os.Getenv("QUEUE_BROKER")
+	if broker == "" {
+		broker = config.Cfg.Queue.Broker // Fallback to config if env var is not set
+	}
+
+	topic := os.Getenv("PING_TOPIC")
+	if topic == "" {
+		topic = config.Cfg.Queue.Topic
+	}
+
 	reader := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:  []string{brokerAddress},
-		Topic:    config.Cfg.Queue.Topic,
+		Brokers:  []string{broker},
+		Topic:    topic,
 		GroupID:  "AwyYJhkoTAmpeLAJ_BMgHg",
 		MaxBytes: 10e6, // 10MB
 	})
 
 	for {
-		log.Printf("Broker: [%s]", config.Cfg.Queue.Broker)
+		log.Printf("Broker: [%s], Topic: [%s]", broker, topic)
 		m, err := reader.ReadMessage(context.Background())
 		if err != nil {
 			log.Println("Ошибка чтения сообщения из Kafka:", err)

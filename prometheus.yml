@@ -23,11 +23,6 @@ scrape_configs:
       - targets: ["kafka:9102"]
     metrics_path: /metrics
 
-  - job_name: "zookeeper"
-    static_configs:
-      - targets: ["zookeeper:2181"]
-    metrics_path: /metrics
-
   - job_name: 'PostgreSQL'
     static_configs:
       - targets: [ 'localhost:9187' ]
