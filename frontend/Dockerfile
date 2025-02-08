@@ -4,8 +4,7 @@ WORKDIR /app
 
 COPY package*.json package-lock.json ./
 RUN npm install
-RUN npm audit fix --force
-RUN npm install --save-dev webpack@latest
+RUN npm install --save-dev webpack@4.42.0
 RUN npm install web-vitals
 RUN npm install react@latest react-dom@latest
 RUN npm install --save-dev @babel/plugin-proposal-private-property-in-object
@@ -14,7 +13,7 @@ RUN npm install --save-dev @babel/plugin-proposal-private-property-in-object
 COPY src ./src
 COPY public ./public
 
-RUN npm run build \
+RUN npm run build
 RUN ls -al /app/build
 
 FROM nginx:alpine
