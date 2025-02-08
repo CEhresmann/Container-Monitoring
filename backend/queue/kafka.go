@@ -13,7 +13,6 @@ import (
 
 var (
 	brokerAddress = config.Cfg.Queue.Broker
-	topic         = "ip_status_topic"
 )
 
 type IPStatus struct {
@@ -25,12 +24,13 @@ type IPStatus struct {
 func ConsumeMessages() {
 	reader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:  []string{brokerAddress},
-		Topic:    topic,
-		GroupID:  "ip_status_group",
+		Topic:    config.Cfg.Queue.Topic,
+		GroupID:  "AwyYJhkoTAmpeLAJ_BMgHg",
 		MaxBytes: 10e6, // 10MB
 	})
 
 	for {
+		log.Printf("Broker: [%s]", config.Cfg.Queue.Broker)
 		m, err := reader.ReadMessage(context.Background())
 		if err != nil {
 			log.Println("Ошибка чтения сообщения из Kafka:", err)

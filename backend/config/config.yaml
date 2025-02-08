@@ -1,11 +1,11 @@
 server:
-  port: 5434
+  port: "5434"
 database:
-  host: db
-  user: vk
-  password: 12345
-  dbname: vk
+  host: "db"
+  user: "vk"
+  password: "12345"
+  dbname: "monitoring_docker"
 queue:
-  type: kafka
-  broker: kafka:9092
-  topic: pingTopic
+  type: "kafka"
+  broker: "kafka:9092"
+  topic: "pingTopic"

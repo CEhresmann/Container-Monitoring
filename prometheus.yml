@@ -20,7 +20,7 @@ scrape_configs:
 
   - job_name: "kafka-jmx"
     static_configs:
-      - targets: ["kafka:9101"]
+      - targets: ["kafka:9102"]
     metrics_path: /metrics
 
   - job_name: "zookeeper"
