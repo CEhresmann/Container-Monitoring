@@ -27,7 +27,7 @@ __consumer_offsets 39 0
 __consumer_offsets 2 0
 __consumer_offsets 44 0
 __consumer_offsets 12 0
-pingTopic 0 4306
+pingTopic 0 4325
 __consumer_offsets 36 0
 __consumer_offsets 45 0
 __consumer_offsets 16 0
@@ -38,7 +38,7 @@ __consumer_offsets 47 0
 __consumer_offsets 18 0
 __consumer_offsets 7 0
 __consumer_offsets 48 0
-__consumer_offsets 22 4345
+__consumer_offsets 22 4365
 __consumer_offsets 46 0
 __consumer_offsets 23 0
 __consumer_offsets 42 0
