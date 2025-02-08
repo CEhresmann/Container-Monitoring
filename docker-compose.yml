@@ -157,5 +157,7 @@ services:
       - "3000:3000"
     depends_on:
       - backend
+    volumes:
+      - ./frontend/build:/usr/share/nginx/html
     environment:
       REACT_APP_API_URL: "http://nginx/api"
