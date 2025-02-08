@@ -1,5 +1,5 @@
 server:
-  port: "5434"
+  port: "8080"
 database:
   host: "db"
   user: "vk"

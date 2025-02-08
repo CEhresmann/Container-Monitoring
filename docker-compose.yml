@@ -158,5 +158,4 @@ services:
     depends_on:
       - backend
     environment:
-      REACT_APP_API_URL: "/api"
-
+      REACT_APP_API_URL: "http://nginx/api"

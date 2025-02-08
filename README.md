@@ -38,7 +38,6 @@
 │   │   ├── index.js
 │   │   ├── logo.svg
 │   │   ├── nginx.conf
-│   │   ├── reportWebVitals.js
 │   │   └── setupTests.js
 │   └── README.md           # Документация по фронтенду (не собственного сочинения)
 ├── init_kafka.sh           # Скрипт инициализации Kafka (создание топика pingTopic)

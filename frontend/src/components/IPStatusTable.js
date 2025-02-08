@@ -1,39 +1,38 @@
 import React, { useEffect, useState } from 'react';
-import { Table } from 'react-bootstrap';
 
-function IPStatusTable() {
-    const [ipStatuses, setIpStatuses] = useState([]);
+const IPStatusTable = () => {
+  const [ipStatusData, setIpStatusData] = useState([]);
 
-    useEffect(() => {
-        fetch('/api/ips')
-            .then((response) => response.json())
-            .then((data) => setIpStatuses(data))
-            .catch((error) => console.error('Error fetching IP statuses:', error));
-    }, []);
+  useEffect(() => {
+    // Fetch IP status data from the backend
+    fetch("/api/ip")
+      .then(response => response.json())
+      .then(data => setIpStatusData(data))
+      .catch(error => console.error('Error fetching IP status data:', error));
+  }, []);
 
-    return (
-        <div>
-            <h1>IP Statuses</h1>
-            <Table striped bordered hover>
-                <thead>
-                <tr>
-                    <th>IP Address</th>
-                    <th>Ping Time</th>
-                    <th>Last OK</th>
-                </tr>
-                </thead>
-                <tbody>
-                {ipStatuses.map((status, index) => (
-                    <tr key={index}>
-                        <td>{status.ip}</td>
-                        <td>{status.ping_time}</td>
-                        <td>{status.last_ok}</td>
-                    </tr>
-                ))}
-                </tbody>
-            </Table>
-        </div>
-    );
+  return (
+    <div>
+      <h2>IP Status Table</h2>
+      <table>
+        <thead>
+        <tr>
+          <th>IP Address</th>
+          <th>Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        {ipStatusData.map((item, index) => (
+          <tr key={index}>
+            <td>{item.ip}</td>
+            <td>{item.ping_time}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+</div>
+)
+  ;
 }
 
 export default IPStatusTable;

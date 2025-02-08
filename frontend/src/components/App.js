@@ -1,40 +1,37 @@
-import logo from '../logo.svg';
-import '../App.css';
-import React, { useEffect } from 'react';
-import IPStatusTable from './IPStatusTable';
+import React, { useEffect, useState } from 'react';
+import IPStatusTable from "./IPStatusTable";
 
-function App() {
-    useEffect(() => {
-        fetch('/api/ip')
-            .then((response) => response.json())
-            .then((data) => {
-                console.log('IP статусы:', data);
-            })
-            .catch((error) => console.error('Ошибка при получении IP статусов:', error));
-    }, []);
+const App = () => {
+  const [ipStatuses, setIpStatuses] = useState([]);
 
-    const addIPStatus = (ip, pingTime, lastOK) => {
-        fetch('/api/ip', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ ip, pingTime, lastOK }),
-        })
-            .then((response) => {
-                if (response.ok) {
-                    console.log('IP статус добавлен');
-                }
-            })
-            .catch((error) => console.error('Ошибка при добавлении IP статуса:', error));
-    };
+  // Function to fetch IP statuses from the backend
+  const fetchIPStatuses = async () => {
+    try {
+      const response = await fetch('/api/ip');
+      if (response.ok) {
+        const data = await response.json();
+        setIpStatuses(data);
+      } else {
+        console.error('Failed to fetch IP statuses');
+      }
+    } catch (error) {
+      console.error('Error fetching IP statuses:', error);
+    }
+  };
 
-    return (
-        <div className="container">
-            <IPStatusTable />
-            {/* Здесь можно добавить элементы UI, связанные с addIPStatus */}
-        </div>
-    );
-}
+  useEffect(() => {
+    fetchIPStatuses();  // Initial fetch
+    const interval = setInterval(fetchIPStatuses, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div>
+      <h1>IP Statuses</h1>
+      <IPStatusTable ipStatuses={ipStatuses} />
+    </div>
+  );
+};
 
 export default App;

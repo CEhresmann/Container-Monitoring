@@ -3,14 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "bootstrap": "^5.1.0",
-    "react": "^17.0.2",
-    "react-bootstrap": "^2.0.0",
-    "react-dom": "^17.0.2",
-    "react-scripts": "^3.0.1",
-    "web-vitals": "^4.2.4"
+    "bootstrap": "^5.3.3",
+    "react": "^18.2.0",
+    "react-bootstrap": "^2.10.9",
+    "react-dom": "^18.2.0",
+    "react-scripts": "^5.0.1"
   },
-  "proxy": "http://backend:8080",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
@@ -34,8 +32,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "webpack": "^5.97.1"
   }
 }
