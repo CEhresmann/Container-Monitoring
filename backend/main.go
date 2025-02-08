@@ -31,10 +31,6 @@ var (
 	)
 )
 
-func init() {
-	prometheus.MustRegister(requests)
-}
-
 func main() {
 	config.LoadConfig()
 	db.InitDB()
@@ -60,7 +56,9 @@ func main() {
 		Addr:    ":" + config.Cfg.Server.Port,
 		Handler: corsHandler,
 	}
-
+	go func() {
+		prometheus.MustRegister(requests)
+	}()
 	go func() {
 		defer wg.Done()
 		log.Println("Сервер запущен на:", config.Cfg.Server.Port)

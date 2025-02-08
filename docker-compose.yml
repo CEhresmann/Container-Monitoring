@@ -37,7 +37,6 @@ services:
       KAFKA_CFG_METRICS_RECORDING_LEVEL: "INFO"
       KAFKA_KRAFT_CLUSTER_ID: "AwyYJhkoTAmpeLAJ_BMgHg"
       KAFKA_JMX_OPTS: "-javaagent:/jmx_exporter/jmx_prometheus_javaagent.jar=9103:/jmx_exporter/kafka.yml"
-  #    KAFKA_JMX_OPTS: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=127.0.0.1 -Dcom.sun.management.jmxremote.rmi.port=9102"
     volumes:
         - ./jmx_exporter:/jmx_exporter
         - ./kafka-logs:/bitnami/kafka
@@ -75,10 +74,6 @@ services:
       kafka:
         condition: service_healthy
     environment:
-#      DATABASE_NAME: monitoring
-#      DATABASE_HOST: db
-#      DATABASE_USER: vk
-#      DATABASE_PASSWORD: 12345
       DB_CONFIG: "db://vk:12345@db:5432/monitoring_docker"
       QUEUE_BROKER: "kafka:9092"
       PING_TOPIC: "pingTopic"

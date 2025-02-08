@@ -14,7 +14,7 @@ build:
 
 up:
 	@echo "Запуск всех сервисов через Docker Compose..."
-	docker-compose up --build || docker compose up --build
+	docker-compose up --build -d || docker compose up --build -d
 
 down:
 	@echo "Остановка и удаление контейнеров и томов..."
