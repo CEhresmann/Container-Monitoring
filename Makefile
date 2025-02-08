@@ -10,19 +10,19 @@ lint:
 
 build:
 	@echo "Сборка Docker-образов..."
-	docker-compose build
+	docker-compose build || docker compose build
 
 up:
 	@echo "Запуск всех сервисов через Docker Compose..."
-	docker-compose up --build
+	docker-compose up --build || docker compose up --build
 
 down:
 	@echo "Остановка и удаление контейнеров и томов..."
-	docker-compose down -v
+	docker-compose down -v || docker compose down -v
 
 logs:
 	@echo "Показ логов всех сервисов..."
-	docker-compose logs -f
+	docker-compose logs -f || docker compose logs -f
 
 clean:
 	@echo "Очистка неиспользуемых томов Docker..."
