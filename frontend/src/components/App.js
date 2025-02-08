@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import IPStatusTable from "./IPStatusTable";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import IPStatusTable from './IPStatusTable';
 
 const App = () => {
   const [ipStatuses, setIpStatuses] = useState([]);
@@ -21,14 +22,14 @@ const App = () => {
 
   useEffect(() => {
     fetchIPStatuses();  // Initial fetch
-    const interval = setInterval(fetchIPStatuses, 5000);
+    const interval = setInterval(fetchIPStatuses, 5000); // Re-fetch every 5 seconds
 
-    return () => clearInterval(interval);
+    return () => clearInterval(interval); // Clear interval on cleanup
   }, []);
 
   return (
-    <div>
-      <h1>IP Statuses</h1>
+    <div className="container mt-4">
+      <h1 className="text-center text-primary mb-4">IP Statuses</h1>
       <IPStatusTable ipStatuses={ipStatuses} />
     </div>
   );

@@ -1,38 +1,30 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { Table } from 'react-bootstrap';
 
-const IPStatusTable = () => {
-  const [ipStatusData, setIpStatusData] = useState([]);
-
-  useEffect(() => {
-    // Fetch IP status data from the backend
-    fetch("/api/ip")
-      .then(response => response.json())
-      .then(data => setIpStatusData(data))
-      .catch(error => console.error('Error fetching IP status data:', error));
-  }, []);
-
+const IPStatusTable = ({ ipStatuses }) => {
   return (
-    <div>
-      <h2>IP Status Table</h2>
-      <table>
-        <thead>
+    <div className="container mt-4">
+      <h2 className="text-center text-primary mb-4">IP Status Table</h2>
+      <Table striped bordered hover responsive variant="light" className="shadow-sm">
+        <thead className="bg-primary text-white">
         <tr>
-          <th>IP Address</th>
-          <th>Status</th>
+          <th>IP адрес</th>
+          <th>Время пинга (в ms)</th>
+          <th>Дата последней успешной попытки</th>
         </tr>
         </thead>
         <tbody>
-        {ipStatusData.map((item, index) => (
-          <tr key={index}>
-            <td>{item.ip}</td>
-            <td>{item.ping_time}</td>
+        {ipStatuses.map((status, index) => (
+          <tr key={index} className={index % 2 === 0 ? 'table-secondary' : ''}>
+            <td>{status.ip}</td>
+            <td>{status.ping_time}</td>
+            <td>{new Date(status.last_ok).toLocaleString()}</td>
           </tr>
         ))}
-      </tbody>
-    </table>
-</div>
-)
-  ;
-}
+        </tbody>
+      </Table>
+    </div>
+  );
+};
 
 export default IPStatusTable;
