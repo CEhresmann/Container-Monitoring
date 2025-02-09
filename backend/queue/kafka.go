@@ -28,7 +28,7 @@ type IPStatus struct {
 func ConsumeMessages() {
 	broker := os.Getenv("QUEUE_BROKER")
 	if broker == "" {
-		broker = config.Cfg.Queue.Broker // Fallback to config if env var is not set
+		broker = config.Cfg.Queue.Broker 
 	}
 
 	topic := os.Getenv("PING_TOPIC")
