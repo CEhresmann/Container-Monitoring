@@ -2,6 +2,7 @@ auth_enabled: false
 
 server:
   http_listen_port: 3100
+  grpc_listen_port: 9096
 
 common:
   path_prefix: /loki
@@ -17,18 +18,29 @@ common:
 schema_config:
   configs:
     - from: 2020-10-24
-      store: boltdb-shipper
+      store: tsdb
       object_store: filesystem
-      schema: v11
+      schema: v13
       index:
         prefix: index_
         period: 24h
+
 limits_config:
-  split_queries_by_interval: 24h
-  max_query_parallelism: 100
+  retention_period: 30d
+  reject_old_samples: true
+  reject_old_samples_max_age: 168h
+  max_entries_limit_per_query: 5000
+  allow_structured_metadata: false
 
-query_scheduler:
-  max_outstanding_requests_per_tenant: 4096
+ruler:
+  storage:
+    type: local
+    local:
+      directory: /loki/rules
 
-frontend:
-  max_outstanding_per_tenant: 4096
+compactor:
+  working_directory: /loki/compactor
+  retention_enabled: true
+  retention_delete_delay: 2h
+  compaction_interval: 10m
+  delete_request_store: filesystem

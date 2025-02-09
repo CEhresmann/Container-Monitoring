@@ -77,8 +77,9 @@ services:
       DB_CONFIG: "db://vk:12345@db:5432/monitoring_docker"
       QUEUE_BROKER: "kafka:9092"
       PING_TOPIC: "pingTopic"
-    labels:
-      logging: promtail
+    logging:
+      driver: "json-file"
+
 
 
   pinger:
@@ -152,25 +153,22 @@ services:
 
   loki:
     container_name: loki
-    image: grafana/loki:2.5.0
+    image: grafana/loki:latest
     ports:
       - "3100:3100"
     volumes:
       - ./loki/loki-config.yaml:/etc/loki/local-config.yaml
+      - ./volumes/loki:/var/lib/loki
+      - ./loki:/loki
     command: -config.file=/etc/loki/local-config.yaml
 
   promtail:
     container_name: promtail
-    image: grafana/promtail:2.5.0
+    image: grafana/promtail:latest
     volumes:
       - /var/log:/var/log
       - ./loki/docker-config.yaml:/etc/promtail/docker-config.yml
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/run/docker.sock:/var/run/docker.sock
     command: -config.file=/etc/promtail/config.yml
-    ports:
-      - "9080:9080"
-      - "3101:3100"
     depends_on:
       - loki
 
