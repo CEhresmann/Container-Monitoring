@@ -3,48 +3,50 @@
 
 ```.
 ├── backend
-│   ├── config
-│   │   ├── config.go       # Загрузка конфигурации через Viper
-│   │   └── config.yaml     # Конфигурационный файл (порт, БД, очередь)
-│   ├── db
-│   │   ├── connect.go      # Подключение к PostgreSQL
-│   │   ├── Create.sql      # Скрипт создания таблиц
-│   │   └── init.sql        # Скрипт инициализации БД
-│   ├── Dockerfile          # Dockerfile для backend
-│   ├── go.mod
-│   ├── go.sum
-│   ├── handlers
-│   │   ├── IpToBDApi.go    # HTTP-обработчики для API (/api/ip)
-│   │   └── IpToBDApi_test.go
-│   ├── main.go             # Запуск API-сервера, метрики и Kafka-потребитель
-│   └── queue
-│       └── kafka.go        # Чтение сообщений из Kafka и запись в БД
+│   ├── config
+│   │   ├── config.go       # Загрузка конфигурации через Viper
+│   │   └── config.yaml     # Конфигурационный файл (порт, БД, очередь)
+│   ├── db
+│   │   ├── connect.go      # Подключение к PostgreSQL
+│   │   ├── Create.sql      # Скрипт создания таблиц
+│   │   └── init.sql        # Скрипт инициализации БД
+│   ├── Dockerfile          # Dockerfile для backend
+│   ├── go.mod
+│   ├── go.sum
+│   ├── handlers
+│   │   ├── IpToBDApi.go    # HTTP-обработчики для API (/api/ip)
+│   │   └── IpToBDApi_test.go
+│   ├── main.go             # Запуск API-сервера, метрики и Kafka-потребитель
+│   └── queue
+│       └── kafka.go        # Чтение сообщений из Kafka и запись в БД
 ├── db
-│   └── init.sql            # Инициализация базы данных PostgreSQL
+│   └── init.sql            # Инициализация базы данных PostgreSQL
 ├── docker-compose.yml      # Описание всех сервисов (backend, frontend, Kafka, exporters, Prometheus)
 ├── frontend                # Каталог с фронтендом (React + Nginx)
-│   ├── Dockerfile          # Dockerfile для сборки фронтенда
-│   ├── default.conf        # Конфигурация Nginx для проксирования API-запросов
-│   ├── nginx.conf          # Основная конфигурация Nginx
-│   ├── package.json        # Конфигурация npm
-│   ├── public              # Публичные файлы (index.html и др.)
-│   ├── src                 # Исходный код React-приложения
-│   │   ├── App.css
-│   │   ├── App.test.js
-│   │   ├── components
-│   │   │   ├── App.js
-│   │   │   └── IPStatusTable.js
-│   │   ├── index.css
-│   │   ├── index.js
-│   │   ├── logo.svg
-│   │   ├── nginx.conf
-│   │   └── setupTests.js
-│   └── README.md           # Документация по фронтенду (не собственного сочинения)
+│   ├── Dockerfile          # Dockerfile для сборки фронтенда
+│   ├── nginx.conf          # Основная конфигурация Nginx
+│   ├── package.json        # Конфигурация npm
+│   ├── public              # Публичные файлы (index.html и др.)
+│   ├── src                 # Исходный код React-приложения
+│   │   ├── App.css
+│   │   ├── components
+│   │   │   ├── App.js
+│   │   │   └── IPStatusTable.js
+│   │   ├── index.css
+│   │   ├── index.js
+│   │   ├── setupTests.js
+│   └── README.md           # Документация по фронтенду
+├── grafana                 # Директория с конфигурацией Grafana (дашборды и источники данных)
+│   ├── dashboard
+│   └── provision
+├── loki                    # Директория с конфигурацией Loki и Promtail
+│   ├── loki-config.yaml
+│   └── promtail-config.yaml
+├── prometheus.yml          # Конфигурация Prometheus
 ├── init_kafka.sh           # Скрипт инициализации Kafka (создание топика pingTopic)
-├── jmx_exporter            # Директория с конфигурацией для JMX Exporter (jmx_prometheus_javaagent.jar, kafka.yml и др.)
-├── kafka-logs              # Том для хранения данных Kafka
+├── jmx_exporter            # Директория с конфигурацией для JMX Exporter
 ├── Makefile                # Набор команд для сборки, запуска, логов и чистки
-└── prometheus.yml          # Конфигурация Prometheus для сбора метрик
+└── README.md
 ```
 
 **_Этот демонстративный проект для системы мониторинга контейнеров. Бэкенд отвечает за управление базой данных, обработку HTTP-запросов и взаимодействие с брокером сообщений Kafka. сервис Пингер пингует доступные контейнеры и передаёт данные во фронтэнд, которые становятся доступны на странице http://localhost Также реализован сбор и экспорт метрик Prometheus для мониторинга системы._**
@@ -70,7 +72,7 @@
 ### Запуск проекта
 
 - **скопируйте репозиторий себе на машину**
-```git clone ```
+```git clone git@github.com:CEhresmann/Container-Monitoring.git```
 
 - **Запустите через Docker Compose**
 

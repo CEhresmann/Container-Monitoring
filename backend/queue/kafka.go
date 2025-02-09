@@ -3,22 +3,15 @@ package queue
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"github.com/CEhresmann/Container-Monitoring/config"
-	"log"
 	"os"
 
+	"go.uber.org/zap"
+
+	"github.com/CEhresmann/Container-Monitoring/config"
 	"github.com/CEhresmann/Container-Monitoring/db"
 	"github.com/segmentio/kafka-go"
 )
 
-/*
-var (
-
-	brokerAddress = config.Cfg.Queue.Broker
-
-)
-*/
 type IPStatus struct {
 	IP       string `json:"ip"`
 	PingTime int    `json:"ping_time"`
@@ -28,7 +21,7 @@ type IPStatus struct {
 func ConsumeMessages() {
 	broker := os.Getenv("QUEUE_BROKER")
 	if broker == "" {
-		broker = config.Cfg.Queue.Broker 
+		broker = config.Cfg.Queue.Broker
 	}
 
 	topic := os.Getenv("PING_TOPIC")
@@ -43,28 +36,29 @@ func ConsumeMessages() {
 		MaxBytes: 10e6, // 10MB
 	})
 
+	zap.L().Info("Запуск Kafka-потребителя", zap.String("broker", broker), zap.String("topic", topic))
+
 	for {
-		log.Printf("Broker: [%s], Topic: [%s]", broker, topic)
+		zap.L().Info("Чтение сообщения из Kafka", zap.String("broker", broker), zap.String("topic", topic))
 		m, err := reader.ReadMessage(context.Background())
 		if err != nil {
-			log.Println("Ошибка чтения сообщения из Kafka:", err)
+			zap.L().Error("Ошибка чтения сообщения из Kafka", zap.Error(err))
 			continue
 		}
 
 		var ipStatus IPStatus
-		err = json.Unmarshal(m.Value, &ipStatus)
-		if err != nil {
-			log.Println("Ошибка десериализации JSON:", err)
+		if err := json.Unmarshal(m.Value, &ipStatus); err != nil {
+			zap.L().Error("Ошибка десериализации JSON", zap.Error(err))
 			continue
 		}
 
 		_, err = db.DB.Exec("INSERT INTO ips (ip, ping_time, last_ok) VALUES ($1, $2, $3)",
 			ipStatus.IP, ipStatus.PingTime, ipStatus.LastOK)
 		if err != nil {
-			log.Println("Ошибка вставки в БД:", err)
+			zap.L().Error("Ошибка вставки в БД", zap.Error(err))
 			continue
 		}
 
-		fmt.Println("Данные добавлены в БД:", ipStatus)
+		zap.L().Info("Данные успешно добавлены в БД", zap.Any("ipStatus", ipStatus))
 	}
 }

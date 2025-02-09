@@ -9,6 +9,7 @@ import (
 
 	"github.com/CEhresmann/Container-Monitoring/config"
 	_ "github.com/lib/pq"
+	"go.uber.org/zap"
 )
 
 var DB *sql.DB
@@ -33,16 +34,16 @@ func InitDB() {
 		if err == nil {
 			err = DB.Ping()
 			if err == nil {
-				log.Println("Подключение к базе данных успешно")
+				zap.L().Info("Подключение к базе данных успешно")
 				CreateTable()
 				return
 			}
 		}
-		log.Printf("Ошибка подключения к БД (попытка %d/%d): %v", i+1, maxRetries, err)
+		zap.L().Info("Ошибка подключения к БД")
 		time.Sleep(retryInterval)
 	}
 
-	log.Fatal("Не удалось подключиться к базе данных после нескольких попыток:", err)
+	zap.L().Error("Не удалось подключиться к базе данных после нескольких попыток:")
 }
 
 func CreateTable() {
@@ -52,7 +53,8 @@ func CreateTable() {
 func executeSQLFile(filepath string, errorMessage string) {
 	sqlScript, err := os.ReadFile(filepath)
 	if err != nil {
-		log.Fatalf("Ошибка чтения SQL-файла %s: %v", filepath, err)
+		zap.L().Error("Ошибка чтения SQL-файла")
+		return
 	}
 
 	_, err = DB.Exec(string(sqlScript))
@@ -60,5 +62,5 @@ func executeSQLFile(filepath string, errorMessage string) {
 		log.Printf("%s: %v", errorMessage, err)
 	}
 
-	log.Printf("SQL-скрипт %s успешно выполнен.", filepath)
+	zap.L().Info("SQL-скрипт успешно выполнен.")
 }

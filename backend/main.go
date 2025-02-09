@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"github.com/gorilla/handlers"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -12,10 +10,13 @@ import (
 	"syscall"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/CEhresmann/Container-Monitoring/config"
 	"github.com/CEhresmann/Container-Monitoring/db"
 	"github.com/CEhresmann/Container-Monitoring/my_handler"
 	"github.com/CEhresmann/Container-Monitoring/queue"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -32,8 +33,18 @@ var (
 )
 
 func main() {
+	logger, err := zap.NewProduction()
+	if err != nil {
+		panic(err)
+	}
+	defer logger.Sync()
+	zap.ReplaceGlobals(logger)
+	logger.Info("Запуск приложения")
+
 	config.LoadConfig()
 	db.InitDB()
+
+	prometheus.MustRegister(requests)
 
 	var wg sync.WaitGroup
 	stopChan := make(chan os.Signal, 1)
@@ -42,6 +53,7 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+		logger.Info("Запуск Kafka-потребителя")
 		queue.ConsumeMessages()
 	}()
 
@@ -56,27 +68,26 @@ func main() {
 		Addr:    ":" + config.Cfg.Server.Port,
 		Handler: corsHandler,
 	}
-	go func() {
-		prometheus.MustRegister(requests)
-	}()
+
+	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		log.Println("Сервер запущен на:", config.Cfg.Server.Port)
+		logger.Info("Сервер запущен", zap.String("port", config.Cfg.Server.Port))
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalf("Ошибка запуска сервера: %v", err)
+			logger.Fatal("Ошибка запуска сервера", zap.Error(err))
 		}
 	}()
 
 	<-stopChan
-	log.Println("Получен сигнал остановки, завершаем работу...")
+	logger.Info("Получен сигнал остановки, завершаем работу...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	if err := server.Shutdown(ctx); err != nil {
-		log.Printf("Ошибка при остановке сервера: %v", err)
+		logger.Error("Ошибка при остановке сервера", zap.Error(err))
 	}
 
 	wg.Wait()
-	log.Println("Все горутины завершены, выход.")
+	logger.Info("Все горутины завершены, выход.")
 }

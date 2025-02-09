@@ -3,7 +3,7 @@ package my_handler
 import (
 	"encoding/json"
 	"github.com/CEhresmann/Container-Monitoring/db"
-	"log"
+	"go.uber.org/zap"
 	"net/http"
 )
 
@@ -16,7 +16,8 @@ type IPStatus struct {
 func GetIPStatuses(w http.ResponseWriter, r *http.Request) {
 	rows, err := db.DB.Query("SELECT ip, ping_time, last_ok FROM ips")
 	if err != nil {
-		http.Error(w, "Error retrieving data: "+err.Error(), http.StatusInternalServerError)
+		zap.L().Error("Error retrieving data", zap.Error(err))
+		http.Error(w, "Error retrieving data", http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
@@ -26,7 +27,7 @@ func GetIPStatuses(w http.ResponseWriter, r *http.Request) {
 		var ip IPStatus
 		err := rows.Scan(&ip.IP, &ip.PingTime, &ip.LastOK)
 		if err != nil {
-			log.Println("Error scanning row:", err)
+			zap.L().Error("Error scanning row", zap.Error(err))
 			http.Error(w, "Error processing data", http.StatusInternalServerError)
 			return
 		}
@@ -34,14 +35,14 @@ func GetIPStatuses(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := rows.Err(); err != nil {
-		log.Println("Error with row iteration:", err)
+		zap.L().Error("Error with row iteration", zap.Error(err))
 		http.Error(w, "Error processing data", http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(results); err != nil {
-		log.Println("Error encoding JSON:", err)
+		zap.L().Error("Error encoding JSON", zap.Error(err))
 		http.Error(w, "Error encoding response", http.StatusInternalServerError)
 	}
 }
@@ -50,7 +51,7 @@ func AddIPStatus(w http.ResponseWriter, r *http.Request) {
 	var ip IPStatus
 	err := json.NewDecoder(r.Body).Decode(&ip)
 	if err != nil {
-		log.Println("Error decoding JSON:", err)
+		zap.L().Error("Error decoding JSON", zap.Error(err))
 		http.Error(w, "Invalid input data", http.StatusBadRequest)
 		return
 	}
@@ -58,10 +59,11 @@ func AddIPStatus(w http.ResponseWriter, r *http.Request) {
 	_, err = db.DB.Exec("INSERT INTO ips (ip, ping_time, last_ok) VALUES ($1, $2, $3)",
 		ip.IP, ip.PingTime, ip.LastOK)
 	if err != nil {
-		log.Println("Error inserting into DB:", err)
+		zap.L().Error("Error inserting into DB", zap.Error(err))
 		http.Error(w, "Error saving data", http.StatusInternalServerError)
 		return
 	}
 
+	zap.L().Info("IP status added successfully", zap.String("ip", ip.IP))
 	w.WriteHeader(http.StatusCreated)
 }

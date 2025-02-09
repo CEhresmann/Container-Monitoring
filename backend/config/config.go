@@ -2,7 +2,7 @@ package config
 
 import (
 	"github.com/spf13/viper"
-	"log"
+	"go.uber.org/zap"
 	"os"
 )
 
@@ -34,11 +34,12 @@ func LoadConfig() {
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
-		log.Printf("Ошибка чтения конфигурации: %v (используем только ENV)", err)
+		zap.L().Info("Ошибка чтения конфигурации: (используем только ENV)")
 	}
 
 	if err := viper.Unmarshal(&Cfg); err != nil {
-		log.Fatalf("Ошибка разбора конфигурации: %v", err)
+		zap.L().Error("Ошибка разбора конфигурации")
+		return
 	}
 
 	if broker := os.Getenv("QUEUE_BROKER"); broker != "" {
@@ -49,5 +50,5 @@ func LoadConfig() {
 		Cfg.Queue.Topic = topic
 	}
 
-	log.Println("Конфигурация загружена успешно")
+	zap.L().Info("Конфигурация загружена успешно")
 }
